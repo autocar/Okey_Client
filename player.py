@@ -34,17 +34,16 @@ def writeIntoMemory(card):
 
 ##########################################################
 
-def player(rev, CARD, action):
+def playerGet(rev, CARD, action):
 	for line in rev:
 		for index in line:
 			getCardInHand(index)
 	CARD = card(CARD['number'], CARD['color'])
-
-	AI_response = AI(hand, CARD, action, memory)
+	writeIntoMemory(CARD)
+	AI_response = AIGet(hand, CARD, action, memory)
 	return AI_response
 
 def playerThrow(CARD):
 	getCardInHand(CARD)
-	AI_response = AI(hand, CARD, "throw", memory)
-	print AI_response
-	return [AI_response[0:11], AI_response[12:23]]
+	AI_response = AIThrow(hand, memory)
+	return AI_response

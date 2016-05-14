@@ -8,11 +8,9 @@ from AI import *
 from card import *
 
 #########################################################
-sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 SERVER_IP = '140.113.123.225'
 SERVER_PORT = 7975
 SERVER_ADDRESS = (SERVER_IP, SERVER_PORT)
-sock.connect(SERVER_ADDRESS)
 ######################################################### set the net connection
 msg = ""			# the messenge you send to server
 rev = ""			# the messenge you receive from server
@@ -82,7 +80,7 @@ class myThread(threading.Thread):
 			if ('action' in rev):
 				if (rev['action'] == 'get'):
 					print rev['hand']
-					playerAction = player(rev['hand'], rev['discard'], rev['action'])
+					playerAction = playerGet(rev['hand'], rev['discard'], rev['action'])
 					self.playerMove(playerAction)
 				if (rev['action'] == 'throw'):
 					playerAction = playerThrow(rev['get'])

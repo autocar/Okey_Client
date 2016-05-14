@@ -10,9 +10,23 @@ handPool = [[0,0,0,0,0,0,0,0,0,0,0,0,0,0],
 			[0,0,0,0,0,0,0,0,0,0,0,0,0,0],
 			[0,0,0,0,0,0,0,0,0,0,0,0,0,0],
 			[0,0,0,0,0,0,0,0,0,0,0,0,0,0]]
-
-block = card(0, 'empty')
 ##########################################
+
+def poolGenerate(hand):
+	for card in hand:
+		if (card.color == "black"):
+			handPool[0][card.number] += 1
+		elif (card.color == "blue"):
+			handPool[1][card.number] += 1
+		elif (card.color == "red"):
+			handPool[2][card.number] += 1
+		elif (card.color == "yellow"):
+			handPool[3][card.number] += 1
+
+def cleanPool():
+	for i in range(len(handPool)):
+		for j in range(len(handPool[i])):
+			handPool[i][j] = 0
 
 def printList (list, listname):
 	print listname +'(' + str(len(list)) + ')' + ':'
@@ -48,63 +62,72 @@ def handCompare(handPool, card):
 		tempPool2[3][card.number] += 1
 
 	handPoolAnalysis(tempPool1)
+	score1 = len(doneList)*10 + len(waitingList)*5 + len(uselessList)*1
 	print len(doneList)*10 + len(waitingList)*5 + len(uselessList)*1
 	cleanList()
 	handPoolAnalysis(tempPool2)
+	score2 = len(doneList)*10 + len(waitingList)*5 + len(uselessList)*1
 	print len(doneList)*10 + len(waitingList)*5 + len(uselessList)*1
+	if (score2-1 > score1):
+		return "take"
+	else:
+		return "draw"
 
 ##########################################
 
-def AI(hand, CARD, mode, memory):
+def AIGet(hand, CARD, mode, memory):
 	print "AI is thinking..."
-	for card in hand:
-		if (card.color == "black"):
-			handPool[0][card.number] += 1
-		elif (card.color == "blue"):
-			handPool[1][card.number] += 1
-		elif (card.color == "red"):
-			handPool[2][card.number] += 1
-		elif (card.color == "yellow"):
-			handPool[3][card.number] += 1
-
+	poolGenerate(hand)
 	printHandPool()
-	#get a card
 	action = ""
+	if (CARD.color == "empty"):
+		action = "draw"
+	else:
+		action = handCompare(handPool, CARD)
+	cleanList()
+	cleanPool()
+	return action
 
-	if (mode == "get"):
-		handPoolAnalysis(handPool)
-
-		printList(doneList, "doneList")
-		printList(waitingList, "waitingList")
-		printList(uselessList, "uselessList")
-		if (CARD.color == "empty"):
-			action = "draw"
+def AIThrow(hand, memory):
+	poolGenerate(hand)
+	handPoolAnalysis(handPool)
+	printHandPool()
+	printList(doneList, "doneList")
+	printList(waitingList, "waitingList")
+	printList(uselessList, "uselessList")
+	returnList = [[],[]]
+	index = randint(0,len(uselessList)-1)
+	print "throw", uselessList[index].color, uselessList[index].number
+	uselessList.pop(index)
+	for i in range(len(doneList)):
+		if (len(doneList) > 12):
+			switch = 0
+			if (doneList[i].color != 'empty'):
+				returnList[switch].append(dict({'color' : doneList[i].color, 'number' : doneList[i].number}))
+			else:
+				if (switch == 0):
+					switch = 1
+				else:
+					switch = 0
+				returnList[switch].append(dict({'color' : 'empty', 'number' : 0}))
 		else:
-			handCompare(handPool, CARD)
-		# choose draw card from deck or discard
-		cleanList()
-		return action
-
-	# throw a card
-	elif (mode == "throw"):
-		handPoolAnalysis(handPool)
-		printList(doneList, "doneList")
-		printList(waitingList, "waitingList")
-		printList(uselessList, "uselessList")
-		returnList = []
-		index = randint(0,len(uselessList)-1)
-		print "throw", uselessList[index].color, uselessList[index].number
-		uselessList.pop(index)
-		for i in range(len(doneList)):
-			returnList.append(dict({'color' : doneList[i].color, 'number' : doneList[i].number}))
-		for i in range(len(waitingList)):
-			returnList.append(dict({'color' : waitingList[i].color, 'number' : waitingList[i].number}))
-		for i in range(len(uselessList)):
-			returnList.append(dict({'color' : uselessList[i].color, 'number' : uselessList[i].number}))
-		while (len(returnList) != 24):
-			returnList.append(dict({'color' : 'empty', 'number' : 0}))
-		cleanList()
-		return returnList
+			returnList[0].append(dict({'color' : doneList[i].color, 'number' : doneList[i].number}))
+	for i in range(len(waitingList)):
+		if (len(returnList[0]) < 12):
+			returnList[0].append(dict({'color' : waitingList[i].color, 'number' : waitingList[i].number}))
+		else:
+			returnList[1].append(dict({'color' : waitingList[i].color, 'number' : waitingList[i].number}))
+	for i in range(len(uselessList)):
+		if (len(returnList[0]) < 12):
+			returnList[0].append(dict({'color' : uselessList[i].color, 'number' : uselessList[i].number}))
+		else:
+			returnList[1].append(dict({'color' : uselessList[i].color, 'number' : uselessList[i].number}))
+	for i in range(2):
+		while (len(returnList[i]) < 12):
+			returnList[i].append(dict({'color' : 'empty', 'number' : 0}))
+	cleanList()
+	cleanPool()
+	return returnList
 
 
 def handPoolAnalysis(handPool):
@@ -115,7 +138,6 @@ def handPoolAnalysis(handPool):
 				numCombo = checkNumCombo(handPool[color], number)
 				colorCombo = checkColorCombo(handPool, number)
 				print numCombo, colorCombo
-				# compare two combo
 				if (numCombo == 0 and colorCombo == 0):
 					pass
 				elif (numCombo > colorCombo):
@@ -127,7 +149,6 @@ def handPoolAnalysis(handPool):
 						numComboClassify(color, number, numCombo)
 					else:
 						colorComboClassify(color, number, colorCombo)
-					#conflict handle
 
 ##########################################
 
